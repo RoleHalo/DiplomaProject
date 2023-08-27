@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.yibanke.api.db.dao.TbAmectTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.example.yibanke.api.db.pojo.TbAmectType" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="money" property="money" jdbcType="DECIMAL" />
+    <result column="systemic" property="systemic" jdbcType="BIT" />
+  </resultMap>
+  <select id="searchAllAmectType" resultType="com.example.yibanke.api.db.pojo.TbAmectType">
+        SELECT id,
+               type,
+               money,
+               systemic
+        FROM tb_amect_type
+    </select>
+
+    <select id="searchAmectTypeByPage" parameterType="HashMap" resultType="HashMap">
+        SELECT `at`.id,
+        `at`.type,
+        `at`.money,
+        `at`.systemic,
+        COUNT( a.type_id ) AS notPay,
+        IF(COUNT(a.id)=0 AND systemic=false ,"true","false") AS canDelete
+        FROM tb_amect_type `at`
+        LEFT JOIN tb_amect a ON `at`.id = a.type_id AND a.`status` = 1
+        WHERE 1=1
+        <if test="type!=null">
+            AND `at`.type LIKE '%${type}%'
+        </if>
+        GROUP BY `at`.id
+        LIMIT #{start}, #{length}
+    </select>
+    <select id="searchAmectTypeCount" parameterType="HashMap" resultType="long">
+        SELECT COUNT(temp.ct)
+        FROM (
+        SELECT COUNT(*) AS ct
+        FROM tb_amect_type `at`
+        LEFT JOIN tb_amect a ON `at`.id = a.type_id AND a.`status` = 1
+        WHERE 1=1
+        <if test="type!=null">
+            AND `at`.type LIKE '%${type}%'
+        </if>
+        GROUP BY `at`.id
+        ) temp
+    </select>
+
+    <insert id="insert" parameterType="com.example.yibanke.api.db.pojo.TbAmectType">
+    INSERT INTO tb_amect_type
+    SET type = #{type},
+        money = #{money},
+        systemic = false
+    </insert>
+
+    <select id="searchById" parameterType="int" resultType="HashMap">
+    SELECT `type`,
+           money,
+           systemic
+    FROM tb_amect_type
+    WHERE id = #{id}
+    </select>
+
+    <update id="update" parameterType="HashMap">
+    UPDATE tb_amect_type
+    SET type = #{type},
+        money = #{money}
+    WHERE id = #{id}
+    </update>
+
+    <delete id="deleteAmectTypeByIds">
+        DELETE FROM tb_amect_type
+        WHERE systemic = false  AND id IN
+        <foreach collection="array" open="(" separator="," close=")" item="one">
+            #{one}
+        </foreach>
+    </delete>
+
+
+</mapper>

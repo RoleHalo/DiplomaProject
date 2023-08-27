@@ -1,0 +1,98 @@
+<template>
+	<el-dialog width="780px" :close-on-click-modal="false" v-model="visible" :show-close="false">
+		<div id="pdfDom">
+			<h2 class="title">请假单</h2>
+			<table class="leave-table">
+				<tr align="center">
+					<td width="14%">姓名</td>
+					<td width="16%">{{ name }}</td>
+					<td width="14%">性别</td>
+					<td width="16%">{{ sex }}</td>
+					<td width="14%">班级</td>
+					<td>{{ dept }}</td>
+				</tr>
+				<tr>
+					<td align="center">请假类别</td>
+					<td colspan="5">{{ type }}</td>
+				</tr>
+				<tr>
+					<td align="center">请假时间</td>
+					<td colspan="5">{{ start }}&nbsp;&nbsp;~&nbsp;&nbsp;{{ end }}</td>
+				</tr>
+				<tr>
+					<td align="center">请假事由</td>
+					<td colspan="5">{{ reason }}</td>
+				</tr>
+				<tr>
+					<td align="center">此处签字</td>
+					<td colspan="2"></td>
+					<td align="center">学院/教务盖章</td>
+					<td colspan="3"></td>
+				</tr>
+			</table>
+
+			<p class="desc">备注：请假期间一切责任自负，假期结束后应及时返校工作/学习，否则按照旷工/旷课处理。</p>
+		</div>
+		<template #footer>
+			<span class="dialog-footer">
+				<el-button type="primary" @click="getPdf('#pdfDom')" size="medium">下载请假单</el-button>
+				<el-button size="medium" @click="cancel()">取消</el-button>
+				
+			</span>
+		</template>
+	</el-dialog>
+</template>
+
+<script>
+export default {
+	data: function() {
+		return {
+			visible: false,
+			//请假单文件名
+			htmlTitle: '请假单',
+			name: null,
+			sex: null,
+			dept: null,
+			reason: null,
+			start: null,
+			end: null,
+			type: null
+		};
+	},
+	methods: {
+		init: function(id) {
+		    let that = this;
+		    that.visible = true;
+		    that.name = null;
+		    that.sex = null;
+		    that.dept = null;
+		    that.reason = null;
+		    that.start = null;
+		    that.end = null;
+		    that.type = null;
+		    that.$http('leave/searchLeaveById', 'POST', {id: id}, true, function(resp) {
+		        that.name = resp.name;
+		        that.sex = resp.sex;
+		        that.dept = resp.dept;
+		        that.reason = resp.reason;
+		        if (resp.type == 1) {
+		            that.type = '病假';
+		        } else if (resp.type == 2) {
+		            that.type = '事假';
+		        }
+		        that.start = resp.start;
+		        that.end = resp.end;
+		    });
+		},
+		cancel: function() {
+		    this.visible = false
+		}
+		
+
+	}
+};
+</script>
+
+<style lang="less" scoped="scoped">
+@import url('leave_pdf.less');
+</style>
